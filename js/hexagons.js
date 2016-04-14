@@ -2,8 +2,16 @@ function Hexagons(){
 	this.hexes = [];
 	this.controllers = [];
 	this.animtimer = 0;
+	this.fading=false;
+	this.light = null;
+	this.startingLightIntensity = 0.3;
 }
 Hexagons.prototype.init = function(scene){
+
+	this.light =  new THREE.DirectionalLight( 0xffffff, this.startingLightIntensity) 
+	this.light.position.set(0,0,3);
+	scene.add( this.light );
+
 	new THREE.TextureLoader().load("RedBall.png",function(tex){
 		new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
 			this._makeHexes(scene, mesh.children[0].geometry, tex);
@@ -38,9 +46,30 @@ Hexagons.prototype._makeHexes = function(scene, geometry, tex){
 };
 Hexagons.prototype.update = function(delta){
 	this.animtimer += delta;
+	var allcomplete = true;
 	for(var i=0;i<this.hexes.length;i++){ 
 			this.controllers[i].update(delta, this.hexes[i]);
+			if(allcomplete && !this.controllers[i].complete){
+				allcomplete = false;
+			}
 	}
+
+	if(this.fading){
+		var nextColor = this.hexes[0].material.color.r - delta/2;
+		console.log(nextColor);
+		if(nextColor <= 0){
+			this.fading = false;
+			nextColor = 0;
+		}
+		for(var i=0;i<this.hexes.length;i++){ 
+			this.hexes[i].material.color.setScalar(nextColor,nextColor,nextColor);
+		}
+		hexes.light.intensity = nextColor * this.startingLightIntensity;
+	}
+}
+
+Hexagons.prototype.beginfadeout = function(){
+	this.fading = true;
 }
 
 

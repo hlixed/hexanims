@@ -24,9 +24,6 @@ document.body.onload = function(){
 
 	scene = new THREE.Scene();
 	scene.add( new THREE.AmbientLight( 0xaaaaaa) );
-	var light =  new THREE.DirectionalLight( 0xffffff, 0.3) 
-	light.position.set(0,0,3);
-	scene.add( light );
 
 	window.basicMat = new THREE.MeshBasicMaterial({color:0xeeeeee});
 
@@ -37,6 +34,10 @@ document.body.onload = function(){
 	//mesh
 	hexes = new Hexagons();
 	hexes.init(scene);
+
+	document.body.onclick = function(){
+		hexes.beginfadeout();
+	}
 	                                                                                                   
 	// Renderer
 
