@@ -25,7 +25,7 @@ Hexagons.prototype._makeHexes = function(scene, geometry, tex){
 
 	var i=0;
 	this.min_y = -10;
-	for(var x=-10;x<10;x++){
+	for(var x=-8;x<8;x++){
 		for(var y=-3;y<3;y++){
 			//mesh
 			var pushover = x % 2==0 ? 1 : 0 
@@ -33,8 +33,9 @@ Hexagons.prototype._makeHexes = function(scene, geometry, tex){
 			scene.add(this.hexes[i]);
 			
 			var end_pos = new THREE.Vector3(x * diameter * Math.sqrt(3)/2,y * diameter +(pushover * diameter / 2),-10)
+			var start_rotation = new THREE.Vector3(Math.random()*3,Math.random()*3,Math.random()*3);
 			var end_rotation = new THREE.Vector3(Math.PI/2,0,0);
-			this.controllers.push(new HexController(startPos, end_pos, end_rotation, 1.5-end_pos.distanceTo(startPos)/20, 1));
+			this.controllers.push(new HexController(startPos, end_pos, start_rotation, end_rotation, 1.5-end_pos.distanceTo(startPos)/20, 1));
 
 			this.hexes[i].position.copy(startPos);	
 			// + (pushover * diameter / 2)
@@ -69,15 +70,21 @@ Hexagons.prototype.update = function(delta){
 }
 
 Hexagons.prototype.beginfadeout = function(){
-	this.fading = true;
+	for(var i=0;i<this.hexes.length;i++){ 
+			var end_pos = this.controllers[i].startpos;
+			var startPos = this.controllers[i].endpos;
+			var end_rotation = new THREE.Vector3(Math.random()*3,Math.random()*3,Math.random()*3);
+			var start_rotation = this.controllers[i].endrotation;
+			this.controllers[i] = new HexController(startPos, end_pos, start_rotation, end_rotation, end_pos.distanceTo(startPos)/10, 0.5)
+	}
 }
 
 
-function HexController(startpos, endpos, endrotation, startdelay, animationTime){
+function HexController(startpos, endpos, startrotation, endrotation, startdelay, animationTime){
 	this.endpos = endpos;
 	this.startpos = startpos;
 	this.endrotation = endrotation;
-	this.startrotation = new THREE.Vector3(Math.random()*3,Math.random()*3,Math.random()*3);
+	this.startrotation = startrotation
 	this.startdelay = startdelay;
 	this.animationTime = animationTime;
 
