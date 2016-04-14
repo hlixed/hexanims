@@ -4,14 +4,16 @@ function Hexagons(){
 	this.animtimer = 0;
 }
 Hexagons.prototype.init = function(scene){
-	new THREE.OBJLoader().load("hex.obj",function(mesh){
-		this._makeHexes(scene, mesh.children[0].geometry);
+	new THREE.TextureLoader().load("RedBall.png",function(tex){
+		new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
+			this._makeHexes(scene, mesh.children[0].geometry, tex);
+		}.bind(this));
 	}.bind(this));
 }
-Hexagons.prototype._makeHexes = function(scene, geometry){
+Hexagons.prototype._makeHexes = function(scene, geometry, tex){
 	var diameter = 2;
 	var max_x_displacement = 5;
-	var startPos = new THREE.Vector3(2,2,0.5).unproject(camera); //top right of camera
+	var startPos = new THREE.Vector3(1.5,1.5,0.5).unproject(camera); //top right of camera
 
 	var i=0;
 	this.min_y = -10;
@@ -19,16 +21,16 @@ Hexagons.prototype._makeHexes = function(scene, geometry){
 		for(var y=-3;y<3;y++){
 			//mesh
 			var pushover = x % 2==0 ? 1 : 0 
-			this.hexes.push(new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xffffff, map:THREE.ImageUtils.loadTexture("RedBall.png")})));
+			this.hexes.push(new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xffffff,map: tex})));
 			scene.add(this.hexes[i]);
 			
 			var end_pos = new THREE.Vector3(x * diameter * Math.sqrt(3)/2,y * diameter +(pushover * diameter / 2),-10)
 			var end_rotation = new THREE.Vector3(Math.PI/2,0,0);
-			this.controllers.push(new HexController(new THREE.Vector3(0,0,0), new THREE.Vector3(2/Math.sqrt(3) + 0.1,2/Math.sqrt(3) + 0.1,2/Math.sqrt(3) + 0.1), end_rotation, end_pos.distanceTo(startPos)/12, 0.6));
+			this.controllers.push(new HexController(startPos, end_pos, end_rotation, 1.5-end_pos.distanceTo(startPos)/20, 1));
 
-			this.hexes[i].position.copy(end_pos);	
+			this.hexes[i].position.copy(startPos);	
 			// + (pushover * diameter / 2)
-			this.hexes[i].scale.set(0,0,0);
+			this.hexes[i].scale.set(2/Math.sqrt(3) + 0.1,2/Math.sqrt(3) + 0.1,2/Math.sqrt(3) + 0.1);
 			i++;
 		}
 	}
@@ -71,7 +73,7 @@ HexController.prototype.update = function(delta,hex){
 		var oneMinusCompletion = 1-this.completionRate;
 
 		//lerp between this.startpos and this.endpos
-		hex.scale.set(this.startpos.x * oneMinusCompletion + this.endpos.x * this.completionRate,
+		hex.position.set(this.startpos.x * oneMinusCompletion + this.endpos.x * this.completionRate,
 			this.startpos.y * oneMinusCompletion + this.endpos.y * this.completionRate,
 			this.startpos.z * oneMinusCompletion + this.endpos.z * this.completionRate);
 
