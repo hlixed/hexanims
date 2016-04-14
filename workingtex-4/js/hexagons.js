@@ -5,7 +5,7 @@ function Hexagons(){
 }
 Hexagons.prototype.init = function(scene){
 	new THREE.TextureLoader().load("RedBall.png",function(tex){
-		new THREE.OBJLoader().load("hex.obj",function(mesh){
+		new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
 			this._makeHexes(scene, mesh.children[0].geometry, tex);
 		}.bind(this));
 	}.bind(this));
