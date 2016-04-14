@@ -71,8 +71,9 @@ Hexagons.prototype.update = function(delta){
 
 Hexagons.prototype.beginfadeout = function(){
 	for(var i=0;i<this.hexes.length;i++){ 
-			var end_pos = this.controllers[i].startpos;
-			var startPos = this.controllers[i].endpos;
+			var end_pos = this.controllers[i].startpos.clone();
+			var startPos = this.controllers[i].endpos.clone();
+			end_pos.x = -end_pos.x;
 			var end_rotation = new THREE.Vector3(Math.random()*3,Math.random()*3,Math.random()*3);
 			var start_rotation = this.controllers[i].endrotation;
 			this.controllers[i] = new HexController(startPos, end_pos, start_rotation, end_rotation, end_pos.distanceTo(startPos)/10, 0.5)
