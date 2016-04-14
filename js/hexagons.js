@@ -46,7 +46,7 @@ function HexController(startpos, endpos, endrotation, startdelay, animationTime)
 	this.endpos = endpos;
 	this.startpos = startpos;
 	this.endrotation = endrotation;
-	this.startrotation = new THREE.Vector3(Math.random()*3,Math.random()*3,Math.random()*3);
+	this.startrotation = new THREE.Vector3(Math.PI/2,Math.random()*3,0);
 	this.startdelay = startdelay;
 	this.animationTime = animationTime;
 
@@ -68,17 +68,18 @@ HexController.prototype.update = function(delta,hex){
 			this.completionRate = 1;
 		}
 	
-		var oneMinusCompletion = 1-this.completionRate;
+		var lerpfraction = Math.pow(this.completionRate,0.5);
+		var oneMinusCompletion = 1-lerpfraction;
 
 		//lerp between this.startpos and this.endpos
-		hex.scale.set(this.startpos.x * oneMinusCompletion + this.endpos.x * this.completionRate,
-			this.startpos.y * oneMinusCompletion + this.endpos.y * this.completionRate,
-			this.startpos.z * oneMinusCompletion + this.endpos.z * this.completionRate);
+		hex.scale.set(this.startpos.x * oneMinusCompletion + this.endpos.x * lerpfraction,
+			this.startpos.y * oneMinusCompletion + this.endpos.y * lerpfraction,
+			this.startpos.z * oneMinusCompletion + this.endpos.z * lerpfraction);
 
 		//also lerp the rotation from this.startrotation to this.endrotation
-		hex.rotation.set(this.startrotation.x * oneMinusCompletion + this.endrotation.x * this.completionRate,
-			this.startrotation.y * oneMinusCompletion + this.endrotation.y * this.completionRate,
-			this.startrotation.z * oneMinusCompletion + this.endrotation.z * this.completionRate);
+		hex.rotation.set(this.startrotation.x * oneMinusCompletion + this.endrotation.x * lerpfraction,
+			this.startrotation.y * oneMinusCompletion + this.endrotation.y * lerpfraction,
+			this.startrotation.z * oneMinusCompletion + this.endrotation.z * lerpfraction);
 
 	}	
 }
