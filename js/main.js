@@ -3,7 +3,7 @@ var hexes;
 document.body.onload = function(){
 	var canvas_elem = document.getElementById("hexCanvas");
 	hexes = new ResultHexes(canvas_elem);
-	hexes.beginAppearAnim(true, "red");
+	hexes.beginAppearAnim(true, "blue");
 	update();
 }
 function update(){

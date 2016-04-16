@@ -1,4 +1,4 @@
-function ResultHexes(canvas_elem){
+function ResultHexes(canvas_elem, clear_color){
 	//Class to control the result hexagon-tile animation
 	//canvas_elem: a <canvas> element to draw the animation to
 
@@ -28,11 +28,14 @@ function ResultHexes(canvas_elem){
 	this.scene.add( this.light );
                                                                                
 	// Renderer
+	var clear_color = clear_color || 0x000000
+
 	this.renderer = new THREE.WebGLRenderer({ antialias : true, canvas: canvas_elem});
 	this.renderer.setSize( window.innerWidth, window.innerHeight);
-	this.renderer.setClearColor( 0x00000, 1);
+	this.renderer.setClearColor( clear_color, 1);
 
 	//queue async texture loads
+	this.textures = {};
 	new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
 		this.hex_geometry = mesh.children[0].geometry;
 	}.bind(this));
@@ -47,16 +50,20 @@ function ResultHexes(canvas_elem){
 	}.bind(this));
 }
 ResultHexes.prototype.beginAppearAnim = function(start_from_left, color){
-	//load the texture, then the .obj file
+	//Begin playing the appearing animation.
+	//start_from_left: boolean; whether to start the animatino from the top left corner or the top right
+	//color: "red", "blue", or "gray".
 
-	//todo: transform a color of "red" into "RedBall.png" and the like
+	var colorMap = {"red": "RedBall.png", "blue": "BlueBall.png", "gray": "GrayBall.png"};
+	var filename = colorMap[color];
+	console.log(filename);
 
-	//if we already have the necessary things cached, use them
-	if(this.hex_geometry && this.textures[color]){
-		this._makeHexes(this.hex_geometry, this.textures[color], start_from_left);
+	//if we already have the necessary objects cached, use them
+	if(this.hex_geometry && this.textures[filename]){
+		this._makeHexes(this.hex_geometry, this.textures[filename], start_from_left);
 	}else{
 		//otherwise, load
-		new THREE.TextureLoader().load("RedBall.png",function(tex){
+		new THREE.TextureLoader().load(filename,function(tex){
 			new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
 				this.hex_geometry = mesh.children[0].geometry;
 				this._makeHexes(mesh.children[0].geometry, tex, start_from_left);
@@ -76,11 +83,14 @@ ResultHexes.prototype._makeHexes = function(geometry, tex, start_from_left){
 	this.light.intensity = this.startingLightIntensity;
 
 	//begin creating meshes
+	this.hexes = new Array(16*3);
+	this.controllers = new Array(16*3);
+
 	var i=0;
 	for(var x=-8;x<8;x++){
 		for(var y=-3;y<3;y++){
 			//create a new hex mesh
-			this.hexes.push(new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xffffff,map: tex})));
+			this.hexes[i] = (new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xffffff,map: tex})));
 			this.scene.add(this.hexes[i]);
 			
 			//calculate the position the hex needs to fly to to form a perfect hexagonal grid
@@ -93,7 +103,7 @@ ResultHexes.prototype._makeHexes = function(geometry, tex, start_from_left){
 			var end_rotation = new THREE.Vector3(Math.PI/2,0,0);
 
 			//using the calculated parameters, create a new hexController to lerp the animation
-			this.controllers.push(new HexController(start_pos, end_pos, start_rotation, end_rotation, 1.5-end_pos.distanceTo(start_pos)/20, 1));
+			this.controllers[i] = (new HexController(start_pos, end_pos, start_rotation, end_rotation, 1.5-end_pos.distanceTo(start_pos)/20, 1));
 
 			//set the hexes' initial positions to offscreen and set their scale to the required scale
 			this.hexes[i].position.copy(start_pos);	
