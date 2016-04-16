@@ -4,6 +4,7 @@ function ResultHexes(canvas_elem, clear_color){
 
 	this.hexes = [];
 	this.controllers = [];
+
 	this.animtimer = 0;
 	this.fading=false;
 	this.appearedFromLeft = false;
@@ -28,7 +29,7 @@ function ResultHexes(canvas_elem, clear_color){
 	this.scene.add( this.light );
                                                                                
 	// Renderer
-	var clear_color = clear_color || 0x000000
+	var clear_color = clear_color || 0x000000;
 
 	this.renderer = new THREE.WebGLRenderer({ antialias : true, canvas: canvas_elem});
 	this.renderer.setSize( window.innerWidth, window.innerHeight);
@@ -39,13 +40,15 @@ function ResultHexes(canvas_elem, clear_color){
 	new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
 		this.hex_geometry = mesh.children[0].geometry;
 	}.bind(this));
-	new THREE.TextureLoader().load("RedBall.png",function(tex){
+	var loader = 
+	new THREE.TextureLoader();
+	loader.load("RedBall.png",function(tex){
 		this.textures["RedBall.png"] = tex;
 	}.bind(this));
-	new THREE.TextureLoader().load("BlueBall.png",function(tex){
+	loader.load("BlueBall.png",function(tex){
 		this.textures["BlueBall.png"] = tex;
 	}.bind(this));
-	new THREE.TextureLoader().load("GrayBall.png",function(tex){
+	loader.load("GrayBall.png",function(tex){
 		this.textures["GrayBall.png"] = tex;
 	}.bind(this));
 }
@@ -56,7 +59,10 @@ ResultHexes.prototype.beginAppearAnim = function(start_from_left, color){
 
 	var colorMap = {"red": "RedBall.png", "blue": "BlueBall.png", "gray": "GrayBall.png"};
 	var filename = colorMap[color];
-	console.log(filename);
+
+	if(filename === undefined){
+		throw new Error("Color must be one of 'red', 'blue', or 'gray'");
+	}
 
 	//if we already have the necessary objects cached, use them
 	if(this.hex_geometry && this.textures[filename]){
@@ -82,16 +88,21 @@ ResultHexes.prototype._makeHexes = function(geometry, tex, start_from_left){
 	//reset light
 	this.light.intensity = this.startingLightIntensity;
 
-	//begin creating meshes
-	this.hexes = new Array(16*3);
-	this.controllers = new Array(16*3);
+	if(this.hexes.length == 0){
+		this.hexes = new Array(16*6);
+		this.controllers = new Array(16*6);
+	}
 
+	//begin creating meshes
 	var i=0;
 	for(var x=-8;x<8;x++){
 		for(var y=-3;y<3;y++){
 			//create a new hex mesh
-			this.hexes[i] = (new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xffffff,map: tex})));
-			this.scene.add(this.hexes[i]);
+			if(this.hexes[i] === undefined){
+				this.hexes[i] = (new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xffffff,map: tex})));
+				this.scene.add(this.hexes[i]);
+			}
+			this.hexes[i].material.color.setScalar(1,1,1);
 			
 			//calculate the position the hex needs to fly to to form a perfect hexagonal grid
 			//start_pos was calculated earlier
