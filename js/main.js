@@ -1,9 +1,9 @@
 "use strict";
 var hexes;
 document.body.onload = function(){
-	var container_elem = document.getElementById("canvasContainer");
-	hexes = new ResultHexes(container_elem);
-	hexes.beginAppearAnimation(true, "red");
+	var canvas_elem = document.getElementById("hexCanvas");
+	hexes = new ResultHexes(canvas_elem);
+	hexes.beginAppearAnim(true, "red");
 	update();
 }
 function update(){
@@ -11,5 +11,5 @@ function update(){
 	requestAnimationFrame(update);
 }
 document.body.onclick = function(){
-	hexes.beginDisappearAnimation(true);
+	hexes.beginFlyoutAnim(true);
 }

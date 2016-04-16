@@ -1,40 +1,87 @@
-function Hexagons(){
+function ResultHexes(canvas_elem){
+	//Class to control the result hexagon-tile animation
+	//canvas_elem: a <canvas> element to draw the animation to
+
 	this.hexes = [];
 	this.controllers = [];
 	this.animtimer = 0;
 	this.fading=false;
-	this.light = null;
 	this.appearedFromLeft = false;
-	this.startingLightIntensity = 0.3;
-}
-Hexagons.prototype.init = function(scene, camera, start_from_left){
 
+	//parameters
+	this.startingLightIntensity = 0.3;
+
+	//Clock to get deltas for each frame
+	this.clock = new THREE.Clock();
+
+	//threejs constructs
+	this.scene = new THREE.Scene();
+	this. scene.add( new THREE.AmbientLight( 0xaaaaaa) );
+
+	this.camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1,200);
+	this.camera.position.set(0,0,0);
+	this.scene.add(this.camera);
+
+	//add some light
 	this.light =  new THREE.DirectionalLight( 0xffffff, this.startingLightIntensity) 
 	this.light.position.set(0,0,3);
-	scene.add( this.light );
+	this.scene.add( this.light );
+                                                                               
+	// Renderer
+	this.renderer = new THREE.WebGLRenderer({ antialias : true, canvas: canvas_elem});
+	this.renderer.setSize( window.innerWidth, window.innerHeight);
+	this.renderer.setClearColor( 0x00000, 1);
 
-	//load the texture, then the .obj file
+	//queue async texture loads
+	new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
+		this.hex_geometry = mesh.children[0].geometry;
+	}.bind(this));
 	new THREE.TextureLoader().load("RedBall.png",function(tex){
-		new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
-			this._makeHexes(scene, camera, mesh.children[0].geometry, tex, start_from_left);
-		}.bind(this));
+		this.textures["RedBall.png"] = tex;
+	}.bind(this));
+	new THREE.TextureLoader().load("BlueBall.png",function(tex){
+		this.textures["BlueBall.png"] = tex;
+	}.bind(this));
+	new THREE.TextureLoader().load("GrayBall.png",function(tex){
+		this.textures["GrayBall.png"] = tex;
 	}.bind(this));
 }
-Hexagons.prototype._makeHexes = function(scene, camera, geometry, tex, start_from_left){
+ResultHexes.prototype.beginAppearAnim = function(start_from_left, color){
+	//load the texture, then the .obj file
+
+	//todo: transform a color of "red" into "RedBall.png" and the like
+
+	//if we already have the necessary things cached, use them
+	if(this.hex_geometry && this.textures[color]){
+		this._makeHexes(this.hex_geometry, this.textures[color], start_from_left);
+	}else{
+		//otherwise, load
+		new THREE.TextureLoader().load("RedBall.png",function(tex){
+			new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
+				this.hex_geometry = mesh.children[0].geometry;
+				this._makeHexes(mesh.children[0].geometry, tex, start_from_left);
+			}.bind(this));
+		}.bind(this));
+	}
+}
+ResultHexes.prototype._makeHexes = function(geometry, tex, start_from_left){
 	var diameter = 2;
 	var max_x_displacement = 5;
 
-	var start_pos = new THREE.Vector3(1.5,1.5,0.5).unproject(camera); //top right of camera
-	if(start_from_left)start_pos.x = -start_pos.x;
+	var start_pos = new THREE.Vector3(1.5,1.5,0.5).unproject(this.camera); //top right of camera
+	if(start_from_left)start_pos.x = -start_pos.x; //if we're starting from the left, use the top left of the camera
 	this.appearedFromLeft = start_from_left;
 
+	//reset light
+	this.light.intensity = this.startingLightIntensity;
+
+	//begin creating meshes
 	var i=0;
-	this.min_y = -10;
 	for(var x=-8;x<8;x++){
 		for(var y=-3;y<3;y++){
 			//create a new hex mesh
 			this.hexes.push(new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xffffff,map: tex})));
-			scene.add(this.hexes[i]);
+			this.scene.add(this.hexes[i]);
 			
 			//calculate the position the hex needs to fly to to form a perfect hexagonal grid
 			//start_pos was calculated earlier
@@ -57,7 +104,10 @@ Hexagons.prototype._makeHexes = function(scene, camera, geometry, tex, start_fro
 	}
 	this.animtimer = 0;
 };
-Hexagons.prototype.update = function(delta){
+ResultHexes.prototype.update = function(delta){
+	var delta = this.clock.getDelta();
+
+	//update any in-progress hex animations
 	this.animtimer += delta;
 	var allcomplete = true;
 	for(var i=0;i<this.hexes.length;i++){ 
@@ -67,6 +117,7 @@ Hexagons.prototype.update = function(delta){
 			}
 	}
 
+	//if fading out, update the fade
 	if(this.fading){
 		//subtract delta/2 from the fade color so it goes from 1 to 0 in 2 seconds
 		var nextColor = this.hexes[0].material.color.r - delta/2;
@@ -80,20 +131,34 @@ Hexagons.prototype.update = function(delta){
 		//also fade the light so the black is uniform
 		hexes.light.intensity = nextColor * this.startingLightIntensity;
 	}
+
+	this.renderer.render( this.scene, this.camera);
 }
 
-Hexagons.prototype.beginFlyout = function(toLeft){
+ResultHexes.prototype.beginFlyoutAnim = function(toLeft){
+	//play the zooming-out animation. Only makes sense after beginAppearAnimation() has been called and the ~3s have passed for the animation to complete.
+
+	//toLeft: boolean; whether to fly to the top left or the top right
+
 	for(var i=0;i<this.hexes.length;i++){ 
 			//create a new HexController from the old one, but with the reverse animation
 			var end_pos = this.controllers[i].start_pos.clone();
 			var start_pos = this.controllers[i].end_pos.clone();
-			end_pos.x = -end_pos.x;
+
 			var end_rotation = new THREE.Vector3(Math.random()*3,Math.random()*3,Math.random()*3);
 			var start_rotation = this.controllers[i].end_rotation;
+
+			//choose the correct corner to fly to
+			if(this.appearedFromLeft != toLeft){
+				end_pos.x = -end_pos.x;
+			}
+
+			//overwrite the old HexController
 			this.controllers[i] = new HexController(start_pos, end_pos, start_rotation, end_rotation, end_pos.distanceTo(start_pos)/10, 0.5)
 	}
 }
-Hexagons.prototype.beginFadeout = function(){
+ResultHexes.prototype.beginFadeoutAnim = function(){
+	//Fade hexes out to black
 	//nonreusable?
 	this.fading = true;
 }
