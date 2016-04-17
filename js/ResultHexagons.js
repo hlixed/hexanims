@@ -140,8 +140,8 @@ ResultHexes.prototype.update = function(delta){
 
 	//if fading out, update the fade
 	if(this.fading){
-		//subtract delta/2 from the fade color so it goes from 1 to 0 in 2 seconds
-		var nextColor = this.hexes[0].material.color.r - delta/2;
+		//subtract delta/2 from the fade color so it goes from 1 to 0 in this.fade_anim_time seconds
+		var nextColor = this.hexes[0].material.color.r - delta/this.fade_anim_time;
 		if(nextColor <= 0){
 			this.fading = false;
 			nextColor = 0;
@@ -178,10 +178,10 @@ ResultHexes.prototype.beginFlyoutAnim = function(toLeft){
 			this.controllers[i] = new HexController(start_pos, end_pos, start_rotation, end_rotation, end_pos.distanceTo(start_pos)/10, 0.5)
 	}
 }
-ResultHexes.prototype.beginFadeoutAnim = function(){
+ResultHexes.prototype.beginFadeoutAnim = function(fade_anim_time){
 	//Fade hexes out to black
-	//nonreusable?
 	this.fading = true;
+	this.fade_anim_time = fade_anim_time || 2;
 }
 
 
