@@ -144,9 +144,9 @@ ResultHexes.prototype.update = function(delta){
 	if(this.fading){
 		//subtract delta/2 from the fade color so it goes from 1 to 0 in this.fade_anim_time seconds
 		var nextColor = this.hexes[0].material.color.r - delta/this.fade_anim_time;
-		if(nextColor <= 0){
+		if(nextColor <= this.fade_target){
 			this.fading = false;
-			nextColor = 0;
+			nextColor = this.fade_target;
 		}
 		for(var i=0;i<this.hexes.length;i++){ 
 			this.hexes[i].material.color.setScalar(nextColor,nextColor,nextColor);
@@ -180,10 +180,14 @@ ResultHexes.prototype.beginFlyoutAnim = function(toLeft){
 			this.controllers[i] = new HexController(start_pos, end_pos, start_rotation, end_rotation, end_pos.distanceTo(start_pos)/10, 0.5)
 	}
 }
-ResultHexes.prototype.beginFadeoutAnim = function(fade_anim_time){
+ResultHexes.prototype.beginFadeoutAnim = function(fade_anim_time, fade_target){
 	//Fade hexes out to black
+	if(fade_target < 0 || fade_target > 1){
+		throw new Error("fade_target must be 0-1");
+	}
 	this.fading = true;
 	this.fade_anim_time = fade_anim_time || 2;
+	this.fade_target = fade_target || 0;
 }
 
 
