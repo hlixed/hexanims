@@ -37,19 +37,19 @@ function ResultHexes(canvas_elem, clear_color){
 
 	//queue async texture loads
 	this.textures = {};
-	new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
+	new THREE.OBJLoader().load("static/resulthexes/beveledhex.obj",function(mesh){
 		this.hex_geometry = mesh.children[0].geometry;
 	}.bind(this));
 	var loader = 
 	new THREE.TextureLoader();
-	loader.load("RedBall.png",function(tex){
-		this.textures["RedBall.png"] = tex;
+	loader.load("static/resulthexes/red.png",function(tex){
+		this.textures["static/resulthexes/red.png"] = tex;
 	}.bind(this));
-	loader.load("BlueBall.png",function(tex){
-		this.textures["BlueBall.png"] = tex;
+	loader.load("static/resulthexes/blue.png",function(tex){
+		this.textures["static/resulthexes/blue.png"] = tex;
 	}.bind(this));
-	loader.load("GrayBall.png",function(tex){
-		this.textures["GrayBall.png"] = tex;
+	loader.load("static/resulthexes/gray.png",function(tex){
+		this.textures["static/resulthexes/gray.png"] = tex;
 	}.bind(this));
 }
 ResultHexes.prototype.beginAppearAnim = function(start_from_left, color){
@@ -57,7 +57,7 @@ ResultHexes.prototype.beginAppearAnim = function(start_from_left, color){
 	//start_from_left: boolean; whether to start the animatino from the top left corner or the top right
 	//color: "red", "blue", or "gray".
 
-	var colorMap = {"red": "RedBall.png", "blue": "BlueBall.png", "gray": "GrayBall.png"};
+	var colorMap = {"red": "static/resulthexes/red.png", "blue": "static/resulthexes/blue.png", "gray": "static/resulthexes/gray.png"};
 	var filename = colorMap[color];
 
 	if(filename === undefined){
@@ -70,7 +70,7 @@ ResultHexes.prototype.beginAppearAnim = function(start_from_left, color){
 	}else{
 		//otherwise, load
 		new THREE.TextureLoader().load(filename,function(tex){
-			new THREE.OBJLoader().load("beveledhex.obj",function(mesh){
+			new THREE.OBJLoader().load("static/resulthexes/beveledhex.obj",function(mesh){
 				this.hex_geometry = mesh.children[0].geometry;
 				this._makeHexes(mesh.children[0].geometry, tex, start_from_left);
 			}.bind(this));
@@ -150,7 +150,7 @@ ResultHexes.prototype.update = function(delta){
 			this.hexes[i].material.color.setScalar(nextColor,nextColor,nextColor);
 		}
 		//also fade the light so the black is uniform
-		hexes.light.intensity = nextColor * this.startingLightIntensity;
+		this.light.intensity = nextColor * this.startingLightIntensity;
 	}
 
 	this.renderer.render( this.scene, this.camera);
