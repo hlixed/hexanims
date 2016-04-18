@@ -1,6 +1,7 @@
-function ResultHexes(canvas_elem, clear_color){
+function ResultHexes(canvas_elem, clear_color, asset_folder){
 	//Class to control the result hexagon-tile animation
 	//canvas_elem: a <canvas> element to draw the animation to
+	//asset_folder: the folder where red.png, blue.png, gray.png, hex.obj, and hex.mtl are stored. Must end with "/"! By default: "static/resulthexes/"
 
 	this.hexes = [];
 	this.controllers = [];
@@ -11,6 +12,7 @@ function ResultHexes(canvas_elem, clear_color){
 
 	//parameters
 	this.startingLightIntensity = 0.3;
+	this.asset_folder = asset_folder || "static/resulthexes/"
 
 	//Clock to get deltas for each frame
 	this.clock = new THREE.Clock();
@@ -37,19 +39,19 @@ function ResultHexes(canvas_elem, clear_color){
 
 	//queue async texture loads
 	this.textures = {};
-	new THREE.OBJLoader().load("static/resulthexes/beveledhex.obj",function(mesh){
+	new THREE.OBJLoader().load(this.asset_folder+"beveledhex.obj",function(mesh){
 		this.hex_geometry = mesh.children[0].geometry;
 	}.bind(this));
 	var loader = 
 	new THREE.TextureLoader();
-	loader.load("static/resulthexes/red.png",function(tex){
-		this.textures["static/resulthexes/red.png"] = tex;
+	loader.load(this.asset_folder+"red.png",function(tex){
+		this.textures[this.asset_folder+"red.png"] = tex;
 	}.bind(this));
-	loader.load("static/resulthexes/blue.png",function(tex){
-		this.textures["static/resulthexes/blue.png"] = tex;
+	loader.load(this.asset_folder+"blue.png",function(tex){
+		this.textures[this.asset_folder+"blue.png"] = tex;
 	}.bind(this));
-	loader.load("static/resulthexes/gray.png",function(tex){
-		this.textures["static/resulthexes/gray.png"] = tex;
+	loader.load(this.asset_folder+"gray.png",function(tex){
+		this.textures[this.asset_folder+"gray.png"] = tex;
 	}.bind(this));
 }
 ResultHexes.prototype.beginAppearAnim = function(start_from_left, color){
@@ -57,7 +59,7 @@ ResultHexes.prototype.beginAppearAnim = function(start_from_left, color){
 	//start_from_left: boolean; whether to start the animatino from the top left corner or the top right
 	//color: "red", "blue", or "gray".
 
-	var colorMap = {"red": "static/resulthexes/red.png", "blue": "static/resulthexes/blue.png", "gray": "static/resulthexes/gray.png"};
+	var colorMap = {"red": this.asset_folder+"red.png", "blue": this.asset_folder+"blue.png", "gray": this.asset_folder+"gray.png"};
 	var filename = colorMap[color];
 
 	if(filename === undefined){
@@ -70,7 +72,7 @@ ResultHexes.prototype.beginAppearAnim = function(start_from_left, color){
 	}else{
 		//otherwise, load
 		new THREE.TextureLoader().load(filename,function(tex){
-			new THREE.OBJLoader().load("static/resulthexes/beveledhex.obj",function(mesh){
+			new THREE.OBJLoader().load(this.asset_folder+"beveledhex.obj",function(mesh){
 				this.hex_geometry = mesh.children[0].geometry;
 				this._makeHexes(mesh.children[0].geometry, tex, start_from_left);
 			}.bind(this));
