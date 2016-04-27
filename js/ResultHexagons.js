@@ -33,9 +33,9 @@ function ResultHexes(canvas_elem, clear_color, asset_folder){
 	// Renderer
 	var clear_color = clear_color || 0x000000;
 
-	this.renderer = new THREE.WebGLRenderer({ antialias : true, canvas: canvas_elem});
+	this.renderer = new THREE.WebGLRenderer({ antialias : true, canvas: canvas_elem, alpha: true});
 	this.renderer.setSize( window.innerWidth, window.innerHeight);
-	this.renderer.setClearColor( clear_color, 1);
+	this.renderer.setClearColor( clear_color, 0);
 
 	//queue async texture loads
 	this.textures = {};
@@ -104,6 +104,7 @@ ResultHexes.prototype._makeHexes = function(geometry, tex, start_from_left){
 				this.hexes[i] = (new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:0xffffff,map: tex})));
 				this.scene.add(this.hexes[i]);
 			}
+			this.hexes[i].material.map = tex;
 			this.hexes[i].material.color.setScalar(1,1,1);
 			
 			//calculate the position the hex needs to fly to to form a perfect hexagonal grid
